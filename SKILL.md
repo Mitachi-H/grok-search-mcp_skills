@@ -8,7 +8,7 @@ description: >
   (3) 記事やブログ執筆のために X 上の言説をリサーチしたいとき
   (4) 投稿ネタのアイデア出しをしたいとき
   MCP サーバーが接続済みなら MCP ツール (search_x, x_trend_research, search_x_user, x_context_research) を使う。
-  MCP 未接続なら scripts/call_grok.sh を直接実行する。
+  MCP 未接続なら curl で xAI Responses API を直接実行する。
 ---
 
 # X Search Skill
@@ -38,24 +38,19 @@ Claude 単体では X (Twitter) のリアルタイム検索が弱い。
 
 ### MCP 未接続の場合 (fallback)
 
-直接 xAI API を叩く。以下のパターンで `curl` を使う:
+直接 xAI Responses API を叩く。以下のパターンで `curl` を使う:
 
 ```bash
-curl -s https://api.x.ai/v1/chat/completions \
+curl -s https://api.x.ai/v1/responses \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $XAI_API_KEY" \
   -d '{
-    "model": "grok-3-fast",
+    "model": "grok-4-1-fast",
     "temperature": 0.3,
-    "messages": [
-      {"role": "system", "content": "<SYSTEM_PROMPT>"},
-      {"role": "user", "content": "<USER_QUERY>"}
-    ],
-    "search_parameters": {
-      "mode": "auto",
-      "max_search_results": 20
-    }
-  }' | jq -r '.choices[0].message.content'
+    "instructions": "<SYSTEM_PROMPT>",
+    "input": "<USER_QUERY>",
+    "tools": [{"type": "x_search"}]
+  }' | jq -r '.output[] | select(.type == "message") | .content[] | .text'
 ```
 
 ## プロンプトテンプレート

@@ -18,15 +18,59 @@ if (!XAI_API_KEY) {
 
 // ── Types ───────────────────────────────────────────────────────────
 interface XAIResponseContent {
-  type: string;
+  type?: string;
   text?: string;
+}
+
+interface XAIResponseOutput {
+  type?: string;
+  text?: string;
+  content?: string | XAIResponseContent[];
 }
 
 interface XAIResponse {
   id: string;
-  output: XAIResponseContent[];
+  output?: XAIResponseOutput[];
+  output_text?: string;
   citations?: { url: string; title?: string }[];
   error?: { message: string };
+}
+
+function extractResponseText(data: XAIResponse): string {
+  const textParts: string[] = [];
+  const seen = new Set<string>();
+
+  const pushText = (value: unknown) => {
+    if (typeof value !== "string") return;
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    textParts.push(trimmed);
+  };
+
+  // New Responses API often exposes a convenience field.
+  pushText(data.output_text);
+
+  if (!Array.isArray(data.output)) {
+    return textParts.join("\n\n");
+  }
+
+  for (const block of data.output) {
+    pushText(block.text);
+
+    if (typeof block.content === "string") {
+      pushText(block.content);
+      continue;
+    }
+
+    if (Array.isArray(block.content)) {
+      for (const part of block.content) {
+        pushText(part?.text);
+      }
+    }
+  }
+
+  return textParts.join("\n\n");
 }
 
 // ── xAI Responses API caller ────────────────────────────────────────
@@ -99,12 +143,7 @@ async function callGrok(
     throw new Error(`xAI API error: ${data.error.message}`);
   }
 
-  // Extract text from output blocks
-  const textParts = data.output
-    .filter((block) => block.type === "text" && block.text)
-    .map((block) => block.text!);
-
-  let result = textParts.join("\n\n");
+  let result = extractResponseText(data);
 
   // Append citations if available
   if (data.citations?.length) {

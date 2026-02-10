@@ -109,7 +109,7 @@ Claude Desktop で以下のように聞くだけ:
 ## API について
 
 このサーバーは xAI の **Responses API** (`/v1/responses`) + サーバーサイド `x_search` / `web_search` ツールを使用。
-旧 Chat Completions API の `search_parameters` は 2026年1月12日に廃止予定のため、こちらが正しいアプローチ。
+旧 Chat Completions API の `search_parameters` は 2026年1月12日に廃止済みのため、こちらが正しいアプローチ。
 
 ## アーキテクチャ
 
