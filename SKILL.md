@@ -1,44 +1,44 @@
 ---
 name: x-search
 description: >
-  X (Twitter) リアルタイム検索スキル。xAI (Grok) API を経由して X の投稿を検索・分析する。
-  以下のケースで使う:
-  (1) X/Twitter のトレンドやバズ投稿を調べたいとき
-  (2) 特定ユーザーの最近の投稿を確認したいとき
-  (3) 記事やブログ執筆のために X 上の言説をリサーチしたいとき
-  (4) 投稿ネタのアイデア出しをしたいとき
-  MCP サーバーが接続済みなら MCP ツール (search_x, x_trend_research, search_x_user, x_context_research) を使う。
-  MCP 未接続なら curl で xAI Responses API を直接実行する。
+  Real-time X (Twitter) search skill via xAI (Grok) API.
+  Use when:
+  (1) Looking up trends or viral posts on X/Twitter
+  (2) Checking a specific user's recent posts
+  (3) Researching X discourse for article or blog writing
+  (4) Generating content/post ideas
+  If the MCP server is connected, use MCP tools (search_x, x_trend_research, search_x_user, x_context_research).
+  If MCP is not connected, call the xAI Responses API directly via curl.
 ---
 
 # X Search Skill
 
-## 概要
+## Overview
 
-Claude 単体では X (Twitter) のリアルタイム検索が弱い。
-このスキルは xAI (Grok) API を「X 検索専用レイヤー」として挟むことで、その制約を解消する。
+Claude alone is weak at real-time X (Twitter) search.
+This skill resolves that limitation by using the xAI (Grok) API as a dedicated X search layer.
 
-## 前提条件
+## Prerequisites
 
-- 環境変数 `XAI_API_KEY` が設定されていること
-- MCP サーバー `x-search` が接続済み、または `curl` が使えること
+- Environment variable `XAI_API_KEY` is set
+- MCP server `x-search` is connected, or `curl` is available
 
-## 使い方
+## Usage
 
-### MCP 接続済みの場合
+### With MCP Connected
 
-以下の MCP ツールが利用可能:
+The following MCP tools are available:
 
-| ツール | 用途 | 主要パラメータ |
+| Tool | Purpose | Key Parameters |
 |---|---|---|
-| `search_x` | クイック検索 | `query`, `hours`, `locale` |
-| `x_trend_research` | トレンド深掘り | `topic`, `audience`, `count`, `hours`, `locale` |
-| `search_x_user` | ユーザー投稿検索 | `username`, `query`, `days` |
-| `x_context_research` | 記事用リサーチ | `topic`, `goal`, `audience`, `days` |
+| `search_x` | Quick search | `query`, `hours`, `locale` |
+| `x_trend_research` | Deep trend analysis | `topic`, `audience`, `count`, `hours`, `locale` |
+| `search_x_user` | User post search | `username`, `query`, `days` |
+| `x_context_research` | Article research | `topic`, `goal`, `audience`, `days` |
 
-### MCP 未接続の場合 (fallback)
+### Without MCP (fallback)
 
-直接 xAI Responses API を叩く。以下のパターンで `curl` を使う:
+Call the xAI Responses API directly via `curl`:
 
 ```bash
 curl -s https://api.x.ai/v1/responses \
@@ -53,9 +53,9 @@ curl -s https://api.x.ai/v1/responses \
   }' | jq -r '.output_text // (.output[]? | select(.type == "message") | .content[]? | .text // empty)'
 ```
 
-## プロンプトテンプレート
+## Prompt Templates
 
-### クイック検索用 system prompt
+### Quick Search system prompt
 
 ```
 You are an X (Twitter) search specialist.
@@ -68,7 +68,7 @@ Language: {locale}
 Time range: last {hours} hours
 ```
 
-### トレンド深掘り用 system prompt
+### Trend Research system prompt
 
 ```
 You are an X trend analyst.
@@ -79,28 +79,28 @@ You are an X trend analyst.
 5) Generate {count} content ideas with:
    - Title, Claim, URL, Engagement, Why trending
    - Content idea, Hook drafts (3), Cautions
-Output: clusters → themes → ideas → URL list
+Output: clusters -> themes -> ideas -> URL list
 No investment advice. Primary sources preferred. Mark unverified claims.
 ```
 
-## ワークフロー例
+## Workflow Examples
 
-### 投稿ネタ出し
+### Content Ideation
 
-1. `x_trend_research` で topic=対象領域, audience=both, count=5 を実行
-2. 返ってきたクラスターとアイデアを確認
-3. 気になるアイデアを深掘りしたければ `search_x` で追加検索
-4. 元ポストの文脈を知りたければ `search_x_user` でユーザーの他の投稿も確認
+1. Run `x_trend_research` with topic=your area, audience=both, count=5
+2. Review the returned clusters and ideas
+3. Use `search_x` for deeper dives on interesting ideas
+4. Use `search_x_user` to check the original poster's other posts for context
 
-### 記事執筆前リサーチ
+### Pre-Article Research
 
-1. `x_context_research` で topic=記事テーマ, days=30 を実行
-2. 返ってきた Context Pack を記事の骨子に活用
-3. 不足している一次情報があれば `search_x` で補強
+1. Run `x_context_research` with topic=article theme, days=30
+2. Use the returned Context Pack as the backbone of your article
+3. Fill gaps with `search_x` for additional primary sources
 
-## 注意事項
+## Notes
 
-- xAI API は従量課金（1回 ≈ $0.05–0.15）
-- Grok の検索結果は「Grok が見つけた X 投稿」であり、完全な網羅性は保証されない
-- 投資助言に見える表現は避ける（buy/sell推奨、価格目標など禁止）
-- X 投稿の長文直接引用は避け、要旨 + URL で示す
+- xAI API is pay-as-you-go (approx. $0.05--0.15 per call)
+- Grok's search results are "posts Grok found on X" -- full coverage is not guaranteed
+- Avoid language that looks like investment advice (no buy/sell recommendations or price targets)
+- Avoid long direct quotes from posts; use summaries + URLs instead

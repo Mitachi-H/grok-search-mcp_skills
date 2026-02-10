@@ -2,29 +2,31 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Mitachi-H/x-search-mcp/blob/main/LICENSE)
 
-Claude Desktop / Claude Code から xAI (Grok) API 経由で X (Twitter) をリアルタイム検索する MCP サーバー。
+[日本語版 README はこちら](README.ja.md)
 
-[HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) のプロンプト設計を MCP ツールとして再実装。
+An MCP server that enables Claude Desktop / Claude Code to search X (Twitter) in real time via the xAI (Grok) API.
 
-## 提供ツール
+Re-implements the prompt design from [HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) as MCP tools.
 
-| Tool | 用途 |
+## Tools
+
+| Tool | Purpose |
 |---|---|
-| `search_x` | X投稿のクイック検索。キーワード+期間で絞り込み |
-| `x_trend_research` | トレンド深掘り。クラスター抽出→代表ポスト選定→コンテンツアイデア生成 |
-| `search_x_user` | 特定ユーザーの最近の投稿を検索 |
-| `x_context_research` | 記事執筆用のコンテキストパック作成（一次情報、反論、数字を収集） |
+| `search_x` | Quick search for X posts. Filter by keyword and time range |
+| `x_trend_research` | Deep trend analysis. Cluster extraction, representative post selection, and content idea generation |
+| `search_x_user` | Search recent posts from a specific user |
+| `x_context_research` | Build a context pack for article writing (primary sources, counter-arguments, key figures) |
 
-## セットアップ
+## Setup
 
-### 1. xAI API Key を取得
+### 1. Get an xAI API Key
 
-[https://console.x.ai/](https://console.x.ai/) でサインアップし、API Key を取得。
-従量課金制（1回の呼び出し ≈ $0.05–0.15）。あらかじめクレジットを追加しておく。
+Sign up at [https://console.x.ai/](https://console.x.ai/) and obtain an API key.
+Pay-as-you-go pricing (approx. $0.05--0.15 per call). Add credits in advance.
 
-> **セキュリティ注意**: API キーは絶対にコミットしないでください。設定ファイル（`claude_desktop_config.json` や `.mcp.json`）は `.gitignore` に追加するか、環境変数で管理してください。
+> **Security**: Never commit your API key. Add config files (`claude_desktop_config.json`, `.mcp.json`) to `.gitignore` or manage keys via environment variables.
 
-### 2. インストール
+### 2. Install
 
 ```bash
 git clone https://github.com/Mitachi-H/x-search-mcp.git
@@ -33,9 +35,9 @@ npm install
 npm run build
 ```
 
-### 3a. Claude Desktop App で使う（推奨）
+### 3a. Use with Claude Desktop (recommended)
 
-`claude_desktop_config.json` に以下を追加：
+Add the following to `claude_desktop_config.json`:
 
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
@@ -54,14 +56,14 @@ npm run build
 }
 ```
 
-> `/path/to/` は実際のパスに置き換える。
+> Replace `/path/to/` with the actual path.
 
-Claude Desktop を再起動すると、会話中に「X で〇〇を検索して」と言うだけで自動的にツールが呼ばれる。
+Restart Claude Desktop. Then just say "Search X for ..." in a conversation and the tool is called automatically.
 
-### 3b. Claude Code で使う
+### 3b. Use with Claude Code
 
 ```bash
-# プロジェクトの .mcp.json に追加
+# Add to your project's .mcp.json
 cat > .mcp.json << 'EOF'
 {
   "mcpServers": {
@@ -77,59 +79,59 @@ cat > .mcp.json << 'EOF'
 EOF
 ```
 
-または、Claude Code のスキルとして登録する場合は `skills/` ディレクトリの `SKILL.md` を参照。
+To register as a Claude Code skill, see `SKILL.md` in the `skills/` directory.
 
-## 環境変数
+## Environment Variables
 
-| 変数 | 必須 | デフォルト | 説明 |
+| Variable | Required | Default | Description |
 |---|---|---|---|
-| `XAI_API_KEY` | ✅ | — | xAI API キー |
-| `XAI_BASE_URL` | — | `https://api.x.ai/v1` | API エンドポイント |
-| `XAI_MODEL` | — | `grok-4-1-fast` | 使用モデル（Responses API は grok-4 ファミリー推奨） |
+| `XAI_API_KEY` | Yes | -- | xAI API key |
+| `XAI_BASE_URL` | -- | `https://api.x.ai/v1` | API endpoint |
+| `XAI_MODEL` | -- | `grok-4-1-fast` | Model to use (grok-4 family recommended for Responses API) |
 
-## 使い方の例
+## Usage Examples
 
-Claude Desktop で以下のように聞くだけ:
+Just ask Claude naturally:
 
-- 「AI agents について X で何が話題になってる？」 → `search_x` が呼ばれる
-- 「Claude Code のトレンドを深掘りして、投稿ネタを5つ出して」 → `x_trend_research` が呼ばれる
-- 「@hayattiq の最近の投稿を見せて」 → `search_x_user` が呼ばれる
-- 「BMI技術について記事を書くので、コンテキストリサーチして」 → `x_context_research` が呼ばれる
+- "What's trending about AI agents on X?" -> `search_x`
+- "Deep-dive into Claude Code trends and suggest 5 post ideas" -> `x_trend_research`
+- "Show me @hayattiq's recent posts" -> `search_x_user`
+- "I'm writing an article on BMI tech -- do a context research" -> `x_context_research`
 
-## モデル選択の目安
+## Model Selection Guide
 
-| モデル | 速度 | コスト | 用途 |
+| Model | Speed | Cost | Use Case |
 |---|---|---|---|
-| `grok-4-1-fast` | ◎ 速い | ○ 普通 | 日常的な検索（デフォルト・推奨） |
-| `grok-4-1-fast-reasoning` | ○ 普通 | △ 高い | 複雑なトレンド分析（推論あり） |
-| `grok-4` | △ 遅い | △ 高い | 最高品質の分析 |
+| `grok-4-1-fast` | Fast | Normal | Everyday search (default, recommended) |
+| `grok-4-1-fast-reasoning` | Normal | High | Complex trend analysis (with reasoning) |
+| `grok-4` | Slow | High | Highest-quality analysis |
 
-> **注意**: Responses API の `x_search` / `web_search` ツールは grok-4 ファミリーでの利用が推奨。
+> **Note**: The Responses API `x_search` / `web_search` tools are recommended for use with the grok-4 family.
 
-## API について
+## API
 
-このサーバーは xAI の **Responses API** (`/v1/responses`) + サーバーサイド `x_search` / `web_search` ツールを使用。
-旧 Chat Completions API の `search_parameters` は 2026年1月12日に廃止済みのため、こちらが正しいアプローチ。
+This server uses the xAI **Responses API** (`/v1/responses`) with server-side `x_search` / `web_search` tools.
+The old Chat Completions API `search_parameters` was removed on Jan 12, 2026, so this is the correct approach.
 
-## アーキテクチャ
+## Architecture
 
 ```
 Claude (Desktop / Code)
   └─ MCP (stdio)
-       └─ x-search-mcp (この サーバー)
+       └─ x-search-mcp (this server)
             └─ xAI API (api.x.ai)
-                 └─ Grok が X をリアルタイム検索
+                 └─ Grok searches X in real time
 ```
 
-ポイント: Claude 自体は X を検索できないが、Grok は X 社製なので X 投稿の検索・要約が圧倒的に強い。
-この MCP サーバーは「Grok を Claude の検索レイヤーとして使う」ブリッジ。
+Claude itself cannot search X effectively, but Grok -- built by xAI (the company behind X) -- excels at searching and summarizing X posts.
+This MCP server acts as a bridge, using Grok as Claude's search layer.
 
-## 謝辞
+## Acknowledgements
 
-- [HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) — プロンプト設計の元ネタ。X リサーチのスキル構成を参考にした
-- [stat-guy/grok-search-mcp](https://github.com/stat-guy/grok-search-mcp) — 類似の MCP サーバー実装を参考にした
-- [xAI API Docs](https://docs.x.ai/) — xAI API 公式ドキュメント
+- [HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) -- Original prompt design and X research skill structure
+- [stat-guy/grok-search-mcp](https://github.com/stat-guy/grok-search-mcp) -- Reference MCP server implementation
+- [xAI API Docs](https://docs.x.ai/) -- Official xAI API documentation
 
-## ライセンス
+## License
 
 [MIT](LICENSE)
