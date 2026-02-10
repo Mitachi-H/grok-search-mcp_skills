@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "x-search": {
+      "command": "node",
+      "args": ["/CHANGE_THIS_PATH/x-search-mcp/dist/index.js"],
+      "env": {
+        "XAI_API_KEY": "xai-CHANGE_THIS",
+        "XAI_MODEL": "grok-4-1-fast"
+      }
+    }
+  }
+}
