@@ -50,7 +50,7 @@ curl -s https://api.x.ai/v1/responses \
     "instructions": "<SYSTEM_PROMPT>",
     "input": "<USER_QUERY>",
     "tools": [{"type": "x_search"}]
-  }' | jq -r '.output[] | select(.type == "message") | .content[] | .text'
+  }' | jq -r '.output_text // (.output[]? | select(.type == "message") | .content[]? | .text // empty)'
 ```
 
 ## プロンプトテンプレート

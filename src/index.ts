@@ -182,6 +182,8 @@ server.tool(
       .describe("Search query (e.g. 'Claude Code skills', 'AI agents')"),
     hours: z
       .number()
+      .int()
+      .min(1)
       .optional()
       .default(24)
       .describe("How many hours back to search (default: 24)"),
@@ -190,13 +192,8 @@ server.tool(
       .optional()
       .default("global")
       .describe("Language filter"),
-    max_results: z
-      .number()
-      .optional()
-      .default(10)
-      .describe("Max posts to return (default: 10)"),
   },
-  async ({ query, hours, locale, max_results }) => {
+  async ({ query, hours, locale }) => {
     const daysBack = Math.max(1, Math.ceil(hours / 24));
 
     const systemPrompt = `You are an X (Twitter) search specialist.
@@ -209,7 +206,7 @@ Rules:
 - Sort by relevance and engagement
 - If metrics are unknown, write "unknown"
 - Language filter: ${locale === "global" ? "any language" : locale}
-- Max results: ${max_results}
+- Return up to 10 posts
 
 Output format (for each post):
 1. **URL**: (X post URL or "not found")
@@ -248,6 +245,8 @@ server.tool(
       .describe("Number of content ideas to generate (default: 5)"),
     hours: z
       .number()
+      .int()
+      .min(1)
       .optional()
       .default(48)
       .describe("Hours to look back (default: 48)"),
@@ -348,6 +347,8 @@ server.tool(
       .describe("Optional: filter by topic within user's posts"),
     days: z
       .number()
+      .int()
+      .min(1)
       .optional()
       .default(7)
       .describe("How many days back to search (default: 7)"),
@@ -397,6 +398,8 @@ server.tool(
       .default("general"),
     days: z
       .number()
+      .int()
+      .min(1)
       .optional()
       .default(30)
       .describe("Days to look back (default: 30)"),
