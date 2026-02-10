@@ -75,7 +75,7 @@ function extractResponseText(data: XAIResponse): string {
 
 // ── xAI Responses API caller ────────────────────────────────────────
 // Uses the NEW Responses API with server-side x_search/web_search tools.
-// The old search_parameters on Chat Completions is deprecated (Jan 12, 2026).
+// The old search_parameters on Chat Completions was removed on Jan 12, 2026.
 async function callGrok(
   systemPrompt: string,
   userPrompt: string,
@@ -157,13 +157,19 @@ async function callGrok(
 }
 
 // ── Date helpers ────────────────────────────────────────────────────
+function localDateISO(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localDateISO();
 }
 function daysAgoISO(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
-  return d.toISOString().slice(0, 10);
+  return localDateISO(d);
 }
 
 // ── MCP Server ──────────────────────────────────────────────────────
@@ -240,6 +246,8 @@ server.tool(
       .describe("Target audience"),
     count: z
       .number()
+      .int()
+      .min(1)
       .optional()
       .default(5)
       .describe("Number of content ideas to generate (default: 5)"),

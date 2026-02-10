@@ -31,7 +31,7 @@ Claude 単体では X (Twitter) のリアルタイム検索が弱い。
 
 | ツール | 用途 | 主要パラメータ |
 |---|---|---|
-| `search_x` | クイック検索 | `query`, `hours`, `locale`, `max_results` |
+| `search_x` | クイック検索 | `query`, `hours`, `locale` |
 | `x_trend_research` | トレンド深掘り | `topic`, `audience`, `count`, `hours`, `locale` |
 | `search_x_user` | ユーザー投稿検索 | `username`, `query`, `days` |
 | `x_context_research` | 記事用リサーチ | `topic`, `goal`, `audience`, `days` |
