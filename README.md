@@ -6,16 +6,30 @@
 
 An MCP server that enables Claude Desktop / Claude Code to search X (Twitter) in real time via the xAI (Grok) API.
 
-Re-implements the prompt design from [HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) as MCP tools.
+## Design Philosophy
 
-## Tools
+This server exposes a single, flexible `grok_search` tool with **no hardcoded prompts**. The caller (Claude, or any MCP client) crafts the prompt freely — deciding the search strategy, output format, and language. This works well because AI models like Claude can generate optimal prompts for each use case on the fly.
+
+Citations from Grok's search are returned alongside the response text, so the caller can follow up by fetching specific post URLs or source pages for full content.
+
+## Tool
 
 | Tool | Purpose |
 |---|---|
-| `search_x` | Quick search for X posts. Filter by keyword and time range |
-| `x_trend_research` | Deep trend analysis. Cluster extraction, representative post selection, and content idea generation |
-| `search_x_user` | Search recent posts from a specific user |
-| `x_context_research` | Build a context pack for article writing (primary sources, counter-arguments, key figures) |
+| `grok_search` | Search X and/or the web via Grok. The caller controls everything through the `prompt` parameter. |
+
+### Parameters
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `prompt` | Yes | -- | The instruction/query to send to Grok. Include search intent, desired output format, language, constraints — anything. |
+| `enable_x_search` | -- | `true` | Enable X (Twitter) search |
+| `enable_web_search` | -- | `false` | Enable web search |
+| `from_date` | -- | -- | Search start date (`YYYY-MM-DD`) |
+| `to_date` | -- | today | Search end date (`YYYY-MM-DD`) |
+| `allowed_handles` | -- | -- | Limit X search to these handles (max 10, without `@`) |
+| `excluded_handles` | -- | -- | Exclude these handles from X search (max 10, without `@`) |
+| `temperature` | -- | `0.3` | Grok temperature |
 
 ## Setup
 
@@ -91,12 +105,19 @@ To register as a Claude Code skill, see `SKILL.md` in the `skills/` directory.
 
 ## Usage Examples
 
-Just ask Claude naturally:
+Claude crafts the optimal Grok prompt automatically based on your request:
 
-- "What's trending about AI agents on X?" -> `search_x`
-- "Deep-dive into Claude Code trends and suggest 5 post ideas" -> `x_trend_research`
-- "Show me @hayattiq's recent posts" -> `search_x_user`
-- "I'm writing an article on BMI tech -- do a context research" -> `x_context_research`
+- "What's trending about AI agents on X?" — Claude calls `grok_search` with a prompt asking Grok to find trending AI agent posts with engagement metrics and URLs
+- "Show me @hayattiq's recent posts about MCP" — Claude uses `grok_search` with `allowed_handles: ["hayattiq"]` and a prompt tailored for user post search
+- "Research X discourse on Claude Code for an article I'm writing" — Claude crafts a research-oriented prompt with `enable_web_search: true` for comprehensive sourcing
+- "Search X for reactions to the latest OpenAI announcement, in English" — Claude includes language preference directly in the prompt
+
+### Workflow: Deep-dive with citation follow-up
+
+1. Claude calls `grok_search` to find relevant posts and discussions
+2. Grok returns results with citation URLs
+3. Claude can then fetch specific citation URLs (via web search or web fetch) to get full post content or source pages
+4. Claude synthesizes the full-text content into a comprehensive analysis
 
 ## Model Selection Guide
 
@@ -128,7 +149,7 @@ This MCP server acts as a bridge, using Grok as Claude's search layer.
 
 ## Acknowledgements
 
-- [HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) -- Original prompt design and X research skill structure
+- [HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) -- Original prompt design inspiration
 - [stat-guy/grok-search-mcp](https://github.com/stat-guy/grok-search-mcp) -- Reference MCP server implementation
 - [xAI API Docs](https://docs.x.ai/) -- Official xAI API documentation
 
