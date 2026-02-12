@@ -6,16 +6,30 @@
 
 Claude Desktop / Claude Code から xAI (Grok) API 経由で X (Twitter) をリアルタイム検索する MCP サーバー。
 
-[HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) のプロンプト設計を MCP ツールとして再実装。
+## 設計思想
+
+**ハードコーディングされたプロンプトなし**。単一の `grok_search` ツールを通じて、呼び出し側（Claude など）がプロンプトを自由に組み立てる設計。Claude のような AI モデルはユースケースに応じて最適なプロンプトをその場で生成できるため、固定プロンプトは不要。
+
+Grok の検索で見つかったサイテーション（URL）もレスポンスと一緒に返されるので、必要に応じて特定のポスト URL やソースページにアクセスして全文を取得するワークフローも可能。
 
 ## 提供ツール
 
 | Tool | 用途 |
 |---|---|
-| `search_x` | X投稿のクイック検索。キーワード+期間で絞り込み |
-| `x_trend_research` | トレンド深掘り。クラスター抽出→代表ポスト選定→コンテンツアイデア生成 |
-| `search_x_user` | 特定ユーザーの最近の投稿を検索 |
-| `x_context_research` | 記事執筆用のコンテキストパック作成（一次情報、反論、数字を収集） |
+| `grok_search` | X や Web を Grok 経由で検索。`prompt` パラメータで全てをコントロール。 |
+
+### パラメータ
+
+| パラメータ | 必須 | デフォルト | 説明 |
+|---|---|---|---|
+| `prompt` | ✅ | — | Grok に送るプロンプト。検索意図、出力形式、言語、制約など自由に指定。 |
+| `enable_x_search` | — | `true` | X (Twitter) 検索の有効化 |
+| `enable_web_search` | — | `false` | Web 検索の有効化 |
+| `from_date` | — | — | 検索開始日 (`YYYY-MM-DD`) |
+| `to_date` | — | 今日 | 検索終了日 (`YYYY-MM-DD`) |
+| `allowed_handles` | — | — | 検索対象を特定ハンドルに限定（最大10、`@` なし） |
+| `excluded_handles` | — | — | 特定ハンドルを検索から除外（最大10、`@` なし） |
+| `temperature` | — | `0.3` | Grok の temperature |
 
 ## セットアップ
 
@@ -91,12 +105,19 @@ EOF
 
 ## 使い方の例
 
-Claude Desktop で以下のように聞くだけ:
+Claude がリクエストに応じて最適なプロンプトを自動生成する：
 
-- 「AI agents について X で何が話題になってる？」 → `search_x` が呼ばれる
-- 「Claude Code のトレンドを深掘りして、投稿ネタを5つ出して」 → `x_trend_research` が呼ばれる
-- 「@hayattiq の最近の投稿を見せて」 → `search_x_user` が呼ばれる
-- 「BMI技術について記事を書くので、コンテキストリサーチして」 → `x_context_research` が呼ばれる
+- 「AI agents について X で何が話題になってる？」 → Claude が `grok_search` をトレンド検索プロンプト付きで呼び出す
+- 「@hayattiq の最近の MCP 関連の投稿を見せて」 → `allowed_handles: ["hayattiq"]` と適切なプロンプトで呼び出す
+- 「Claude Code について記事を書くので X の議論をリサーチして」 → `enable_web_search: true` でリサーチ用プロンプトを生成
+- 「最新の OpenAI 発表への反応を英語で検索して」 → 英語指定をプロンプトに含めて呼び出す
+
+### ワークフロー例：サイテーション活用の深掘り
+
+1. Claude が `grok_search` で関連投稿やディスカッションを検索
+2. Grok がサイテーション URL 付きで結果を返す
+3. Claude が重要なサイテーション URL に Web アクセスして全文を取得
+4. Claude が全文を踏まえた総合的な分析を作成
 
 ## モデル選択の目安
 
@@ -128,7 +149,7 @@ Claude (Desktop / Code)
 
 ## 謝辞
 
-- [HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) — プロンプト設計の元ネタ。X リサーチのスキル構成を参考にした
+- [HayattiQ/x-research-skills](https://github.com/HayattiQ/x-research-skills) — プロンプト設計のインスピレーション元
 - [stat-guy/grok-search-mcp](https://github.com/stat-guy/grok-search-mcp) — 類似の MCP サーバー実装を参考にした
 - [xAI API Docs](https://docs.x.ai/) — xAI API 公式ドキュメント
 
