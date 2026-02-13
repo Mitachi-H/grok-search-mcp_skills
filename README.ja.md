@@ -29,6 +29,8 @@ Grok の検索で見つかったサイテーション（URL）もレスポンス
 | `to_date` | — | 今日 | 検索終了日 (`YYYY-MM-DD`) |
 | `allowed_handles` | — | — | 検索対象を特定ハンドルに限定（最大10、`@` なし） |
 | `excluded_handles` | — | — | 特定ハンドルを検索から除外（最大10、`@` なし） |
+| `enable_image_understanding` | — | `false` | X 検索結果の画像解析を有効化 |
+| `enable_video_understanding` | — | `false` | X 検索結果の動画解析を有効化 |
 | `temperature` | — | `0.3` | Grok の temperature |
 
 ## セットアップ
@@ -93,7 +95,7 @@ cat > .mcp.json << 'EOF'
 EOF
 ```
 
-または、Claude Code のスキルとして登録する場合は `skills/` ディレクトリの `SKILL.md` を参照。
+または、Claude Code のスキルとして登録する場合はリポジトリルートの `SKILL.md` を参照。
 
 ## 環境変数
 

@@ -29,6 +29,8 @@ Citations from Grok's search are returned alongside the response text, so the ca
 | `to_date` | -- | today | Search end date (`YYYY-MM-DD`) |
 | `allowed_handles` | -- | -- | Limit X search to these handles (max 10, without `@`) |
 | `excluded_handles` | -- | -- | Exclude these handles from X search (max 10, without `@`) |
+| `enable_image_understanding` | -- | `false` | Enable image understanding in X search results |
+| `enable_video_understanding` | -- | `false` | Enable video understanding in X search results |
 | `temperature` | -- | `0.3` | Grok temperature |
 
 ## Setup
@@ -93,7 +95,7 @@ cat > .mcp.json << 'EOF'
 EOF
 ```
 
-To register as a Claude Code skill, see `SKILL.md` in the `skills/` directory.
+To register as a Claude Code skill, see `SKILL.md` in the repository root.
 
 ## Environment Variables
 

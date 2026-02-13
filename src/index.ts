@@ -91,6 +91,8 @@ async function callGrok(
     toDate?: string;
     allowedHandles?: string[];
     excludedHandles?: string[];
+    enableImageUnderstanding?: boolean;
+    enableVideoUnderstanding?: boolean;
     temperature?: number;
   } = {}
 ): Promise<GrokResult> {
@@ -101,6 +103,8 @@ async function callGrok(
     toDate,
     allowedHandles,
     excludedHandles,
+    enableImageUnderstanding = false,
+    enableVideoUnderstanding = false,
     temperature = 0.3,
   } = options;
 
@@ -114,6 +118,10 @@ async function callGrok(
     if (allowedHandles?.length) xSearchTool.allowed_x_handles = allowedHandles;
     if (excludedHandles?.length)
       xSearchTool.excluded_x_handles = excludedHandles;
+    if (enableImageUnderstanding)
+      xSearchTool.enable_image_understanding = true;
+    if (enableVideoUnderstanding)
+      xSearchTool.enable_video_understanding = true;
     tools.push(xSearchTool);
   }
 
@@ -206,27 +214,45 @@ Use the citation URLs to access full post content or source pages when needed.`,
       .describe("Enable web search (default: false)"),
     from_date: z
       .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format")
       .optional()
       .describe(
         "Search start date in YYYY-MM-DD format (e.g. '2025-01-01')"
       ),
     to_date: z
       .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format")
       .optional()
       .describe(
         "Search end date in YYYY-MM-DD format (e.g. '2025-12-31'). Defaults to today."
       ),
     allowed_handles: z
       .array(z.string())
+      .max(10)
       .optional()
       .describe(
         "Limit X search to these handles only (max 10, without @). Cannot be used with excluded_handles."
       ),
     excluded_handles: z
       .array(z.string())
+      .max(10)
       .optional()
       .describe(
         "Exclude these handles from X search (max 10, without @). Cannot be used with allowed_handles."
+      ),
+    enable_image_understanding: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "Enable image understanding in X search results (default: false)"
+      ),
+    enable_video_understanding: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "Enable video understanding in X search results (default: false)"
       ),
     temperature: z
       .number()
@@ -244,8 +270,80 @@ Use the citation URLs to access full post content or source pages when needed.`,
     to_date,
     allowed_handles,
     excluded_handles,
+    enable_image_understanding,
+    enable_video_understanding,
     temperature,
   }) => {
+    // ── Validation ──────────────────────────────────────────────────
+    if (allowed_handles?.length && excluded_handles?.length) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: allowed_handles and excluded_handles cannot be used together.",
+          },
+        ],
+        isError: true,
+      };
+    }
+    if ((allowed_handles?.length ?? 0) > 10) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: allowed_handles accepts at most 10 handles.",
+          },
+        ],
+        isError: true,
+      };
+    }
+    if ((excluded_handles?.length ?? 0) > 10) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: excluded_handles accepts at most 10 handles.",
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+    if (from_date && !DATE_RE.test(from_date)) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: from_date must be in YYYY-MM-DD format.",
+          },
+        ],
+        isError: true,
+      };
+    }
+    if (to_date && !DATE_RE.test(to_date)) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: to_date must be in YYYY-MM-DD format.",
+          },
+        ],
+        isError: true,
+      };
+    }
+    if (from_date && to_date && from_date > to_date) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: from_date must not be after to_date.",
+          },
+        ],
+        isError: true,
+      };
+    }
+
     const result = await callGrok(prompt, {
       enableXSearch: enable_x_search,
       enableWebSearch: enable_web_search,
@@ -253,6 +351,8 @@ Use the citation URLs to access full post content or source pages when needed.`,
       toDate: to_date ?? todayISO(),
       allowedHandles: allowed_handles,
       excludedHandles: excluded_handles,
+      enableImageUnderstanding: enable_image_understanding,
+      enableVideoUnderstanding: enable_video_understanding,
       temperature,
     });
 

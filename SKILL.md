@@ -31,7 +31,7 @@ A single flexible tool is available:
 
 | Tool | Purpose | Key Parameters |
 |---|---|---|
-| `grok_search` | Search X and/or the web via Grok | `prompt`, `enable_x_search`, `enable_web_search`, `from_date`, `to_date`, `allowed_handles`, `excluded_handles`, `temperature` |
+| `grok_search` | Search X and/or the web via Grok | `prompt`, `enable_x_search`, `enable_web_search`, `from_date`, `to_date`, `allowed_handles`, `excluded_handles`, `enable_image_understanding`, `enable_video_understanding`, `temperature` |
 
 The `prompt` parameter accepts any instruction — you craft the optimal search strategy, output format, and language for each use case. No hardcoded prompts.
 
